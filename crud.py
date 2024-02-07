@@ -1,10 +1,13 @@
-from fastapi import FastAPI, status, Body, HTTPException
+from fastapi import FastAPI, status, Body, HTTPException, Request, Form
 from pydantic import BaseModel
+from fastapi.templating import Jinja2Templates
 from typing import List
+from fastapi.responses import HTMLResponse
 
 app = FastAPI()
 
 messages_db = []
+templates = Jinja2Templates(directory="templates")
 
 
 class Message(BaseModel):
@@ -24,23 +27,22 @@ class Message(BaseModel):
 
 
 @app.get("/")
-def get_all_messages() -> List[Message]:
-    return messages_db
+def get_all_messages(request: Request) -> HTMLResponse:
+    return templates.TemplateResponse("message.html", {"request": request, "messages": messages_db})
 
 
 @app.get(path="/message/{message_id}")
-def get_message(message_id: int) -> Message:
+def get_message(request: Request, message_id: int) -> HTMLResponse:
     try:
-        return messages_db[message_id]
+        return templates.TemplateResponse("message.html", {"request": request, "message": messages_db[message_id]})
     except IndexError:
         raise HTTPException(status_code=404, detail="Message not found")
 
 
-@app.post("/message", status_code=status.HTTP_201_CREATED)
-def create_message(message: Message) -> str:
-    message.id = len(messages_db)
-    messages_db.append(message)
-    return f"Message created!"
+@app.post("/", status_code=status.HTTP_201_CREATED)
+def create_message(request: Request, message: str = Form()) -> HTMLResponse:
+    messages_db.append(Message(id=len(messages_db), text=message))
+    return templates.TemplateResponse("message.html", {"request": request, "messages": messages_db})
 
 
 @app.put("/message/{message_id}")
@@ -66,3 +68,5 @@ def delete_message(message_id: int) -> str:
 def kill_message_all() -> str:
     messages_db.clear()
     return "All messages deleted!"
+
+
