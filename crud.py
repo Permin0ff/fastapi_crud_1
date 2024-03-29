@@ -27,12 +27,12 @@ class Message(BaseModel):
 
 
 @app.get("/")
-def get_all_messages(request: Request) -> HTMLResponse:
+async def get_all_messages(request: Request) -> HTMLResponse:
     return templates.TemplateResponse("message.html", {"request": request, "messages": messages_db})
 
 
 @app.get(path="/message/{message_id}")
-def get_message(request: Request, message_id: int) -> HTMLResponse:
+async def get_message(request: Request, message_id: int) -> HTMLResponse:
     try:
         return templates.TemplateResponse("message.html", {"request": request, "message": messages_db[message_id]})
     except IndexError:
@@ -40,13 +40,13 @@ def get_message(request: Request, message_id: int) -> HTMLResponse:
 
 
 @app.post("/", status_code=status.HTTP_201_CREATED)
-def create_message(request: Request, message: str = Form()) -> HTMLResponse:
+async def create_message(request: Request, message: str = Form()) -> HTMLResponse:
     messages_db.append(Message(id=len(messages_db), text=message))
     return templates.TemplateResponse("message.html", {"request": request, "messages": messages_db})
 
 
 @app.put("/message/{message_id}")
-def update_message(message_id: int, message: str = Body()) -> str:
+async def update_message(message_id: int, message: str = Body()) -> str:
     try:
         edit_message = messages_db[message_id]
         edit_message.text = message
@@ -56,7 +56,7 @@ def update_message(message_id: int, message: str = Body()) -> str:
 
 
 @app.delete("/message/{message_id}")
-def delete_message(message_id: int) -> str:
+async def delete_message(message_id: int) -> str:
     try:
         messages_db.pop(message_id)
         return f"Message ID={message_id} deleted!"
@@ -65,7 +65,7 @@ def delete_message(message_id: int) -> str:
 
 
 @app.delete("/")
-def kill_message_all() -> str:
+async def kill_message_all() -> str:
     messages_db.clear()
     return "All messages deleted!"
 
