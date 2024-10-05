@@ -1,4 +1,4 @@
-from fastapi import FastAPI, status, Body, HTTPException, Request, Form
+from fastapi import FastAPI, Body, HTTPException, Request, Form
 from pydantic import BaseModel
 from fastapi.templating import Jinja2Templates
 from typing import List
@@ -11,9 +11,9 @@ templates = Jinja2Templates(directory="templates")
 
 
 class Message(BaseModel):
-    id: int = None
+    id: int | None = None
     text: str
-
+    
     model_config = {
         "json_schema_extra": {
             "examples":
